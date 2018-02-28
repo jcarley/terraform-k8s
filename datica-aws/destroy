@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+terraform plan -destroy \
+  -out "./datica-aws.tfplan" \
+  -var "public_key_path=$HOME/.ssh/terraform.pub" \
+  -var "aws_access_key=$DATICA_AWS_ACCESS_KEY_ID" \
+  -var "aws_secret_key=$DATICA_AWS_SECRET_ACCESS_KEY"

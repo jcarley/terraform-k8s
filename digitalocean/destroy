@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+var=$(ssh-keygen -E md5 -lf ~/.ssh/terraform.pub | awk '{print $2}')
+fingerprint=${var##MD5:}
+
+terraform plan -destroy \
+ -out "./digitalocean.tfplan" \
+ -var "do_token=${DIGITALOCEAN_ACCESS_TOKEN}" \
+ -var "pub_key=$HOME/.ssh/terraform.pub" \
+ -var "pvt_key=$HOME/.ssh/terraform" \
+ -var "ssh_fingerprint=${fingerprint}" \
+ -var "discovery_token=''"

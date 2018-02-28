@@ -1,0 +1,13 @@
+kops create cluster \
+  --name=www.finishfirstsoftware.com \
+  --dns-zone=www.finishfirstsoftware.com \
+  --state=s3://com.datica.jcarley/k8s/state-store \
+  --zones="us-west-2b" \
+  --topology=private \
+  --networking weave \
+  --bastion="true" \
+  --node-count=2 \
+  --node-size=t2.micro \
+  --master-size=t2.micro \
+  --out=. \
+  --target=terraform
