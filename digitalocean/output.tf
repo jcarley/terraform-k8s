@@ -1,4 +1,8 @@
 
+output "lb_public_ip" {
+  value = "${digitalocean_loadbalancer.public.ip}"
+}
+
 output "master_public_ip" {
   value = "${digitalocean_droplet.master.ipv4_address}"
 }
