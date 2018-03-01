@@ -42,7 +42,7 @@ resource "digitalocean_droplet" "master" {
 
 resource "digitalocean_droplet" "node" {
   image = "ubuntu-16-04-x64"
-  count = 6
+  count = 3
   name = "node-${count.index}"
   region = "nyc3"
   size = "2GB"
