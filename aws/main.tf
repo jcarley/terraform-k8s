@@ -9,6 +9,8 @@ provider "aws" {
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support = true
 }
 
 # Create an internet gateway to give our subnet access to the outside world
@@ -68,14 +70,6 @@ resource "aws_security_group" "elb" {
   description = "Used in the terraform"
   vpc_id      = "${aws_vpc.default.id}"
 
-  # HTTP access from anywhere
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   ingress {
     from_port   = 30902
     to_port     = 30902
@@ -84,8 +78,8 @@ resource "aws_security_group" "elb" {
   }
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -138,13 +132,6 @@ resource "aws_elb" "web" {
   # instances       = ["${aws_instance.master.id}","${aws_instance.node.*.id}"]
 
   listener {
-    instance_port     = 80
-    instance_protocol = "http"
-    lb_port           = 80
-    lb_protocol       = "http"
-  }
-
-  listener {
     instance_port     = 30902
     instance_protocol = "http"
     lb_port           = 30902
@@ -152,10 +139,10 @@ resource "aws_elb" "web" {
   }
 
   listener {
-    instance_port     = 3000
-    instance_protocol = "http"
-    lb_port           = 3000
-    lb_protocol       = "http"
+    instance_port     = 6443
+    instance_protocol = "tcp"
+    lb_port           = 443
+    lb_protocol       = "tcp"
   }
 }
 
@@ -213,11 +200,14 @@ resource "aws_instance" "master" {
     destination = "/tmp/dashboard.yaml"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/master_setup.sh",
-      "/tmp/master_setup.sh ${var.discovery_token} ${aws_instance.master.public_ip} ${aws_elb.web.dns_name} ${aws_elb.web.name} ${var.aws_region}",
-    ]
+  provisioner "file" {
+    source      = "templates/default.storageclass.yaml"
+    destination = "/tmp/default.storageclass.yaml"
+  }
+
+  provisioner "file" {
+    source      = "templates/network-policy.yaml"
+    destination = "/tmp/network-policy.yaml"
   }
 
   provisioner "remote-exec" {
@@ -226,52 +216,67 @@ resource "aws_instance" "master" {
       "/tmp/setup-kubelet-hostname.sh",
     ]
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/master_setup.sh",
+      "/tmp/master_setup.sh ${var.discovery_token} ${aws_instance.master.public_ip} ${aws_elb.web.dns_name} ${aws_elb.web.name} ${var.aws_region}",
+    ]
+  }
+
 }
 
-# resource "aws_instance" "node" {
-#   instance_type = "t2.micro"
-#
-#   tags {
-#     Name = "node-${count.index}"
-#   }
-#
-#   count = 3
-#
-#   # Lookup the correct AMI based on the region
-#   # we specified
-#   ami = "${lookup(var.aws_amis, var.aws_region)}"
-#
-#   # The name of our SSH keypair we created above.
-#   key_name = "${aws_key_pair.auth.id}"
-#
-#   # Our Security group to allow HTTP and SSH access
-#   vpc_security_group_ids = ["${aws_security_group.default.id}"]
-#
-#   # We're going to launch into the same subnet as our ELB. In a production
-#   # environment it's more common to have a separate private subnet for
-#   # backend instances.
-#   subnet_id = "${aws_subnet.default.id}"
-#
-#   # The connection block tells our provisioner how to
-#   # communicate with the resource (instance)
-#   connection {
-#     user = "ubuntu"
-#     type = "ssh"
-#     agent = true
-#     private_key = "${file(var.private_key_path)}"
-#     timeout = "2m"
-#   }
-#
-#   provisioner "file" {
-#     source      = "node_setup.sh"
-#     destination = "/tmp/node_setup.sh"
-#   }
-#
-#   provisioner "remote-exec" {
-#     inline = [
-#       "chmod +x /tmp/node_setup.sh",
-#       "/tmp/node_setup.sh ${var.discovery_token} ${aws_instance.master.public_ip}",
-#     ]
-#   }
-# }
+resource "aws_instance" "node" {
+  instance_type = "t2.micro"
 
+  tags {
+    Name = "node-${count.index}"
+  }
+
+  count = 3
+
+  # Lookup the correct AMI based on the region
+  # we specified
+  ami = "${lookup(var.aws_amis, var.aws_region)}"
+
+  # The name of our SSH keypair we created above.
+  key_name = "${aws_key_pair.auth.id}"
+
+  # Our Security group to allow HTTP and SSH access
+  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+
+  # We're going to launch into the same subnet as our ELB. In a production
+  # environment it's more common to have a separate private subnet for
+  # backend instances.
+  subnet_id = "${aws_subnet.default.id}"
+
+  iam_instance_profile = "${aws_iam_instance_profile.ec2-role.id}"
+
+  # The connection block tells our provisioner how to
+  # communicate with the resource (instance)
+  connection {
+    user = "ubuntu"
+    type = "ssh"
+    agent = true
+    private_key = "${file(var.private_key_path)}"
+    timeout = "2m"
+  }
+
+  provisioner "file" {
+    source      = "scripts/node_setup.sh"
+    destination = "/tmp/node_setup.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/node_setup.sh",
+      "/tmp/node_setup.sh ${var.discovery_token} ${aws_instance.master.private_ip }",
+    ]
+  }
+}
+
+resource "null_resource" "finalsetup" {
+  provisioner "local-exec" {
+    command = "scp -o StrictHostKeyChecking=no -i ~/.ssh/terraform ubuntu@${aws_instance.master.public_ip}:~/.kube/config ./kube-config"
+  }
+}

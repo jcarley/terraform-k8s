@@ -27,7 +27,7 @@ resource "digitalocean_droplet" "master" {
   }
 
   provisioner "file" {
-    source      = "master_setup.sh"
+    source      = "scripts/master_setup.sh"
     destination = "/tmp/master_setup.sh"
   }
 
@@ -61,7 +61,7 @@ resource "digitalocean_droplet" "node" {
   }
 
   provisioner "file" {
-    source      = "node_setup.sh"
+    source      = "scripts/node_setup.sh"
     destination = "/tmp/node_setup.sh"
   }
 
@@ -82,6 +82,16 @@ resource "digitalocean_loadbalancer" "public" {
     entry_protocol = "https"
 
     target_port = 30443
+    target_protocol = "https"
+
+    tls_passthrough = true
+  }
+
+  forwarding_rule {
+    entry_port = 30902
+    entry_protocol = "https"
+
+    target_port = 30902
     target_protocol = "https"
 
     tls_passthrough = true
