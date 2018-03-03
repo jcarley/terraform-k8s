@@ -1,74 +1,13 @@
-# us-west-2 xenial 16.04 LTS amd64 hvm:ebs-ssd 20180126 ami-79873901 hvm
-# Specify the provider and access details
-provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region = "${var.aws_region}"
-}
-
-# Create a VPC to launch our instances into
-resource "aws_vpc" "default" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support = true
-}
-
-# Create an internet gateway to give our subnet access to the outside world
-resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.default.id}"
-}
-
-# Grant the VPC internet access on its main route table
-resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.default.main_route_table_id}"
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.default.id}"
-}
-
-# Create a subnet to launch our instances into
-resource "aws_subnet" "default" {
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-}
-
-# create a role so the aws instances can access aws resources
-resource "aws_iam_instance_profile" "ec2-role" {
-  name = "${var.role_name}"
-  role = "${aws_iam_role.ec2-role.name}"
-  path = "${var.role_path}"
-}
-
-resource "aws_iam_role" "ec2-role" {
-  name                  = "${var.role_name}"
-  path                  = "${var.role_path}"
-  force_detach_policies = "false"
-  assume_role_policy    = "${data.aws_iam_policy_document.ec2-assume-role.json}"
-}
-
-data "aws_iam_policy_document" "ec2-assume-role" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "this" {
-  count      = "${length(var.policy_arn)}"
-  role       = "${aws_iam_role.ec2-role.name}"
-  policy_arn = "${var.policy_arn[count.index]}"
-}
-
 
 # A security group for the ELB so it is accessible via the web
 resource "aws_security_group" "elb" {
   name        = "terraform_example_elb"
   description = "Used in the terraform"
   vpc_id      = "${aws_vpc.default.id}"
+
+  tags {
+    "kubernetes.io/cluster/terraform_example" = "owned"
+  }
 
   ingress {
     from_port   = 30902
@@ -100,6 +39,10 @@ resource "aws_security_group" "default" {
   description = "Used in the terraform"
   vpc_id      = "${aws_vpc.default.id}"
 
+  tags {
+    "kubernetes.io/cluster/terraform_example" = "owned"
+  }
+
   # SSH access from anywhere
   ingress {
     from_port   = 22
@@ -127,9 +70,13 @@ resource "aws_security_group" "default" {
 resource "aws_elb" "web" {
   name = "terraform-example-elb"
 
-  subnets         = ["${aws_subnet.default.id}"]
+  subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
   # instances       = ["${aws_instance.master.id}","${aws_instance.node.*.id}"]
+
+  tags {
+    "kubernetes.io/cluster/terraform_example" = "owned"
+  }
 
   listener {
     instance_port     = 30902
@@ -155,7 +102,8 @@ resource "aws_instance" "master" {
   instance_type = "t2.micro"
 
   tags {
-    Name = "master"
+    Name = "k8s-master"
+    "kubernetes.io/cluster/terraform_example" = "owned"
   }
 
   # Lookup the correct AMI based on the region
@@ -171,9 +119,11 @@ resource "aws_instance" "master" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.default.id}"
+  subnet_id = "${aws_subnet.public.id}"
 
   iam_instance_profile = "${aws_iam_instance_profile.ec2-role.id}"
+
+  depends_on = ["aws_internet_gateway.default"]
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -230,7 +180,8 @@ resource "aws_instance" "node" {
   instance_type = "t2.micro"
 
   tags {
-    Name = "node-${count.index}"
+    Name = "k8s-node-${count.index}"
+    "kubernetes.io/cluster/terraform_example" = "owned"
   }
 
   count = 3
@@ -248,9 +199,11 @@ resource "aws_instance" "node" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.default.id}"
+  subnet_id = "${aws_subnet.public.id}"
 
   iam_instance_profile = "${aws_iam_instance_profile.ec2-role.id}"
+
+  depends_on = ["aws_internet_gateway.default"]
 
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)

@@ -9,6 +9,8 @@ log() {
   echo "===> $1"
 }
 
+export DEBIAN_FRONTEND=noninteractive
+
 TOKEN=$1
 
 ADVERTISEADDRESS=$2
@@ -26,6 +28,8 @@ CLUSTERINFOBUCKET=com.datica.jcarley/k8s/latest
 
 KUBERNETESVERSION=v1.9.3
 
+WEAVE_NET_RELEASE_TAG="v2.2.0"
+
 sudo apt-get update
 sudo apt-get install -y apt-transport-https awscli
 
@@ -36,6 +40,17 @@ sudo apt-get update -y
 
 sudo apt-get install -y docker.io jq
 sudo apt-get install -y --allow-unauthenticated kubelet kubeadm kubectl kubernetes-cni
+
+## Install `weave` command and DaemonSet manifest YAML
+sudo curl --silent --location \
+  "https://github.com/weaveworks/weave/releases/download/${WEAVE_NET_RELEASE_TAG}/weave" \
+  --output /usr/bin/weave
+
+sudo chmod 755 /usr/bin/weave
+
+sudo curl --silent --location \
+  "https://cloud.weave.works/k8s/net?v=${WEAVE_NET_RELEASE_TAG}&k8s-version=${KUBERNETESVERSION}" \
+  --output /etc/weave-net.yaml
 
 # reset kubeadm (workaround for kubelet package presence)
 sudo kubeadm reset
@@ -73,7 +88,7 @@ sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf \
 sudo kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-admin --user=admin --kubeconfig=/etc/kubernetes/admin.conf
 
 log "Setting up weave overlay network"
-curl -s -o /tmp/weave.yml "https://cloud.weave.works/k8s/v1.8/net.yaml"
+curl -s -o /tmp/weave.yml "https://cloud.weave.works/k8s/v1.8/net.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 sudo kubectl apply -f /tmp/weave.yml
 
 # Install the kubernetes dashboard by default

@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 set -o verbose
-# set -o errexit
-# set -o nounset
-# set -o pipefail
-
+set -o errexit
+set -o nounset
+set -o pipefail
 
 log() {
   echo $1
