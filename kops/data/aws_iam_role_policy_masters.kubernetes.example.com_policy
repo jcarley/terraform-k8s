@@ -46,7 +46,7 @@
       ],
       "Condition": {
         "StringEquals": {
-          "ec2:ResourceTag/KubernetesCluster": "kubernetes.finishfirstsoftware.com"
+          "ec2:ResourceTag/KubernetesCluster": "kubernetes.example.com"
         }
       }
     },
@@ -75,7 +75,7 @@
       ],
       "Condition": {
         "StringEquals": {
-          "autoscaling:ResourceTag/KubernetesCluster": "kubernetes.finishfirstsoftware.com"
+          "autoscaling:ResourceTag/KubernetesCluster": "kubernetes.example.com"
         }
       }
     },
@@ -122,7 +122,7 @@
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::com.finishfirstsoftware.deploy"
+        "arn:aws:s3:::com.example.jcarley.deploy"
       ]
     },
     {
@@ -131,7 +131,7 @@
       "Action": [
         "s3:Get*"
       ],
-      "Resource": "arn:aws:s3:::com.finishfirstsoftware.deploy/k8s/state-store/kubernetes.finishfirstsoftware.com/*"
+      "Resource": "arn:aws:s3:::com.example.jcarley.deploy/k8s/state-store/kubernetes.example.com/*"
     },
     {
       "Sid": "kopsK8sRoute53Change",

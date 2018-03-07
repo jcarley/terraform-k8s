@@ -1,4 +1,4 @@
-kops has set your kubectl context to kubernetes.finishfirstsoftware.com
+kops has set your kubectl context to kubernetes.example.com
 
 Terraform output has been placed into .
 Run these commands to apply the configuration:
@@ -9,6 +9,6 @@ Run these commands to apply the configuration:
 Suggestions:
  * validate cluster: kops validate cluster
  * list nodes: kubectl get nodes --show-labels
- * ssh to the master: ssh -i ~/.ssh/id_rsa admin@api.kubernetes.finishfirstsoftware.com
+ * ssh to the master: ssh -i ~/.ssh/id_rsa admin@api.kubernetes.example.com
 The admin user is specific to Debian. If not using Debian please use the appropriate user based on your OS.
  * read about installing addons: https://github.com/kubernetes/kops/blob/master/docs/addons.md

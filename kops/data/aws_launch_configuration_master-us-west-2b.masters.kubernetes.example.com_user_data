@@ -150,12 +150,70 @@ docker:
   - max-file=5
   storage: overlay,aufs
   version: 1.13.1
+encryptionConfig: null
+kubeAPIServer:
+  address: 127.0.0.1
+  admissionControl:
+  - Initializers
+  - NamespaceLifecycle
+  - LimitRanger
+  - ServiceAccount
+  - PersistentVolumeLabel
+  - DefaultStorageClass
+  - DefaultTolerationSeconds
+  - NodeRestriction
+  - Priority
+  - ResourceQuota
+  allowPrivileged: true
+  anonymousAuth: false
+  apiServerCount: 1
+  authorizationMode: AlwaysAllow
+  cloudProvider: aws
+  etcdServers:
+  - http://127.0.0.1:4001
+  etcdServersOverrides:
+  - /events#http://127.0.0.1:4002
+  image: gcr.io/google_containers/kube-apiserver:v1.8.6
+  insecurePort: 8080
+  kubeletPreferredAddressTypes:
+  - InternalIP
+  - Hostname
+  - ExternalIP
+  logLevel: 2
+  requestheaderAllowedNames:
+  - aggregator
+  requestheaderExtraHeaderPrefixes:
+  - X-Remote-Extra-
+  requestheaderGroupHeaders:
+  - X-Remote-Group
+  requestheaderUsernameHeaders:
+  - X-Remote-User
+  securePort: 443
+  serviceClusterIPRange: 100.64.0.0/13
+  storageBackend: etcd2
+kubeControllerManager:
+  allocateNodeCIDRs: true
+  attachDetachReconcileSyncPeriod: 1m0s
+  cloudProvider: aws
+  clusterCIDR: 100.96.0.0/11
+  clusterName: kubernetes.example.com
+  configureCloudRoutes: false
+  image: gcr.io/google_containers/kube-controller-manager:v1.8.6
+  leaderElection:
+    leaderElect: true
+  logLevel: 2
+  useServiceAccountCredentials: true
 kubeProxy:
   clusterCIDR: 100.96.0.0/11
   cpuRequest: 100m
   featureGates: null
   hostnameOverride: '@aws'
   image: gcr.io/google_containers/kube-proxy:v1.8.6
+  logLevel: 2
+kubeScheduler:
+  image: gcr.io/google_containers/kube-scheduler:v1.8.6
+  leaderElection:
+    leaderElect: true
   logLevel: 2
 kubelet:
   allowPrivileged: true
@@ -175,13 +233,32 @@ kubelet:
   podInfraContainerImage: gcr.io/google_containers/pause-amd64:3.0
   podManifestPath: /etc/kubernetes/manifests
   requireKubeconfig: true
+masterKubelet:
+  allowPrivileged: true
+  cgroupRoot: /
+  cloudProvider: aws
+  clusterDNS: 100.64.0.10
+  clusterDomain: cluster.local
+  enableDebuggingHandlers: true
+  evictionHard: memory.available<100Mi,nodefs.available<10%,nodefs.inodesFree<5%,imagefs.available<10%,imagefs.inodesFree<5%
+  featureGates:
+    ExperimentalCriticalPodAnnotation: "true"
+  hostnameOverride: '@aws'
+  kubeconfigPath: /var/lib/kubelet/kubeconfig
+  logLevel: 2
+  networkPluginName: cni
+  nonMasqueradeCIDR: 100.64.0.0/10
+  podInfraContainerImage: gcr.io/google_containers/pause-amd64:3.0
+  podManifestPath: /etc/kubernetes/manifests
+  registerSchedulable: false
+  requireKubeconfig: true
 
 __EOF_CLUSTER_SPEC
 
 cat > ig_spec.yaml << '__EOF_IG_SPEC'
 kubelet: null
 nodeLabels:
-  kops.k8s.io/instancegroup: nodes
+  kops.k8s.io/instancegroup: master-us-west-2b
 taints: null
 
 __EOF_IG_SPEC
@@ -192,15 +269,16 @@ Assets:
 - 59f138a5144224cb0c8ed440d3a0a0e91ef01271@https://storage.googleapis.com/kubernetes-release/release/v1.8.6/bin/linux/amd64/kubectl
 - 1d9788b0f5420e1a219aad2cb8681823fc515e7c@https://storage.googleapis.com/kubernetes-release/network-plugins/cni-0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff.tar.gz
 - 42b15a0a0a56531750bde3c7b08d0cf27c170c48@https://kubeupv2.s3.amazonaws.com/kops/1.8.1/linux/amd64/utils.tar.gz
-ClusterName: kubernetes.finishfirstsoftware.com
-ConfigBase: s3://com.finishfirstsoftware.deploy/k8s/state-store/kubernetes.finishfirstsoftware.com
-InstanceGroupName: nodes
+ClusterName: kubernetes.example.com
+ConfigBase: s3://com.example.jcarley.deploy/k8s/state-store/kubernetes.example.com
+InstanceGroupName: master-us-west-2b
 Tags:
 - _automatic_upgrades
 - _aws
+- _kubernetes_master
 - _networking_cni
 channels:
-- s3://com.finishfirstsoftware.deploy/k8s/state-store/kubernetes.finishfirstsoftware.com/addons/bootstrap-channel.yaml
+- s3://com.example.jcarley.deploy/k8s/state-store/kubernetes.example.com/addons/bootstrap-channel.yaml
 protokubeImage:
   hash: 0b1f26208f8f6cc02468368706d0236670fec8a2
   name: protokube:1.8.1
