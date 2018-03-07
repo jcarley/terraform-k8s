@@ -1,3 +1,7 @@
+variable "cluster_name" {
+  default = "terraform-example"
+}
+
 variable "role_name" {
   default = "ec2-iam-role"
 }
@@ -40,6 +44,10 @@ variable "aws_secret_key" {}
 variable "aws_region" {
   description = "AWS region to launch servers."
   default     = "us-west-2"
+}
+
+variable "aws_availability_zone" {
+  default = "us-west-2a"
 }
 
 # Ubuntu Xenial 16.04 LTS (x64) hvm:ebs-ssd

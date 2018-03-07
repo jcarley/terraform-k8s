@@ -1,5 +1,7 @@
 *.tfplan
 .terraform/
+.terraform*
 .DS_Store
 *.tfstate
-
+*.tfstate.backup
+kube-config

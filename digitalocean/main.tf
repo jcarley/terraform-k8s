@@ -27,7 +27,7 @@ resource "digitalocean_droplet" "master" {
   }
 
   provisioner "file" {
-    source      = "master_setup.sh"
+    source      = "scripts/master_setup.sh"
     destination = "/tmp/master_setup.sh"
   }
 
@@ -42,7 +42,7 @@ resource "digitalocean_droplet" "master" {
 
 resource "digitalocean_droplet" "node" {
   image = "ubuntu-16-04-x64"
-  count = 6
+  count = 3
   name = "node-${count.index}"
   region = "nyc3"
   size = "2GB"
@@ -61,7 +61,7 @@ resource "digitalocean_droplet" "node" {
   }
 
   provisioner "file" {
-    source      = "node_setup.sh"
+    source      = "scripts/node_setup.sh"
     destination = "/tmp/node_setup.sh"
   }
 
@@ -73,24 +73,47 @@ resource "digitalocean_droplet" "node" {
   }
 }
 
-#
-# resource "digitalocean_loadbalancer" "public" {
-#   name = "loadbalancer-1"
-#   region = "nyc3"
-#
-#   forwarding_rule {
-#     entry_port = 80
-#     entry_protocol = "http"
-#
-#     target_port = 80
-#     target_protocol = "http"
-#   }
-#
-#   healthcheck {
-#     port = 22
-#     protocol = "tcp"
-#   }
-#
-#   droplet_ids = ["${digitalocean_droplet.node.*.id}"]
-# }
+resource "digitalocean_loadbalancer" "public" {
+  name = "loadbalancer-1"
+  region = "nyc3"
+
+  forwarding_rule {
+    entry_port = 30443
+    entry_protocol = "https"
+
+    target_port = 30443
+    target_protocol = "https"
+
+    tls_passthrough = true
+  }
+
+  forwarding_rule {
+    entry_port = 30902
+    entry_protocol = "https"
+
+    target_port = 30902
+    target_protocol = "https"
+
+    tls_passthrough = true
+  }
+
+  healthcheck {
+    port = 22
+    protocol = "tcp"
+  }
+
+  droplet_ids = ["${digitalocean_droplet.node.*.id}"]
+}
+
+resource "null_resource" "finalsetup" {
+  provisioner "local-exec" {
+    command = "scp -o StrictHostKeyChecking=no -i ~/.ssh/terraform root@${digitalocean_droplet.master.ipv4_address}:~/.kube/config ./kube-config"
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl apply -f ./templates/dashboard.yaml --kubeconfig ./kube-config"
+  }
+
+  depends_on = ["digitalocean_loadbalancer.public"]
+}
 
