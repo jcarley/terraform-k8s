@@ -28,3 +28,14 @@ Run with following command:
       -var "public_key_path=$HOME/.ssh/terraform.pub" \
       -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
       -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+
+
+### Debugging snippets
+
+journalctl -xeu kubelet
+
+kubectl Cheat Sheet
+https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+verify the cgroup driver dockerd is using
+docker info | grep -i cgroup
