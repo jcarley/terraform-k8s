@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+terraform plan \
+  -out "./aws.tfplan" \
