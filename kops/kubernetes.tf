@@ -173,8 +173,8 @@ resource "aws_internet_gateway" "kubernetes-example-com" {
   }
 }
 
-resource "aws_key_pair" "kubernetes-kubernetes-example-com-cc080831712565bd229369c229dd288a" {
-  key_name   = "kubernetes.kubernetes.example.com-cc:08:08:31:71:25:65:bd:22:93:69:c2:29:dd:28:8a"
-  public_key = "${file("${path.module}/data/aws_key_pair_kubernetes.kubernetes.example.com-cc080831712565bd229369c229dd288a_public_key")}"
+resource "aws_key_pair" "auth" {
+  key_name   = "${var.key_name}"
+  public_key = "${file(var.public_key_path)}"
 }
 

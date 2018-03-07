@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
 
 terraform plan -destroy \
-  -out "./aws.tfplan"
+  -out "./aws.tfplan" \
+  -var "key_name=terraform-jcarley" \
+  -var "public_key_path=$HOME/.ssh/terraform.pub" \
+  -var "private_key_path=$HOME/.ssh/terraform" \
+  -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+  -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+
