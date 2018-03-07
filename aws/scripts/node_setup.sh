@@ -11,7 +11,7 @@ log() {
 
 HOSTNAME="$(hostname -f)"
 
-CLUSTERINFOBUCKET=com.datica.jcarley/k8s/latest
+CLUSTERINFOBUCKET=com.example.jcarley.deploy/k8s/latest
 
 sudo apt-get update
 sudo apt-get install -y awscli

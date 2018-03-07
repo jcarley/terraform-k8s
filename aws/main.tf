@@ -5,9 +5,10 @@ resource "aws_security_group" "elb" {
   description = "Used in the terraform"
   vpc_id      = "${aws_vpc.default.id}"
 
-  tags {
-    "kubernetes.io/cluster/terraform_example" = "owned"
-  }
+  tags = "${merge(map(
+      "Name", "${var.cluster_name}_master_sg",
+      "kubernetes.io/cluster/${var.cluster_name}", "owned"
+    ), var.extra_tags)}"
 
   ingress {
     from_port   = 30902
@@ -32,41 +33,6 @@ resource "aws_security_group" "elb" {
   }
 }
 
-# Our default security group to access
-# the instances over SSH
-resource "aws_security_group" "default" {
-  name        = "terraform_example"
-  description = "Used in the terraform"
-  vpc_id      = "${aws_vpc.default.id}"
-
-  tags {
-    "kubernetes.io/cluster/terraform_example" = "owned"
-  }
-
-  # SSH access from anywhere
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # outbound internet access
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_elb" "web" {
   name = "terraform-example-elb"
 
@@ -74,9 +40,10 @@ resource "aws_elb" "web" {
   security_groups = ["${aws_security_group.elb.id}"]
   # instances       = ["${aws_instance.master.id}","${aws_instance.node.*.id}"]
 
-  tags {
-    "kubernetes.io/cluster/terraform_example" = "owned"
-  }
+  tags = "${merge(map(
+      "Name", "${var.cluster_name}_master_sg",
+      "kubernetes.io/cluster/${var.cluster_name}", "owned"
+    ), var.extra_tags)}"
 
   listener {
     instance_port     = 30902
@@ -101,10 +68,10 @@ resource "aws_key_pair" "auth" {
 resource "aws_instance" "master" {
   instance_type = "t2.micro"
 
-  tags {
-    Name = "k8s-master"
-    "kubernetes.io/cluster/terraform_example" = "owned"
-  }
+  tags = "${merge(map(
+      "Name", "${var.cluster_name}_master",
+      "kubernetes.io/cluster/${var.cluster_name}", "owned"
+    ), var.extra_tags)}"
 
   # Lookup the correct AMI based on the region
   # we specified
@@ -114,7 +81,7 @@ resource "aws_instance" "master" {
   key_name = "${aws_key_pair.auth.id}"
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+  vpc_security_group_ids = ["${aws_security_group.master.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
@@ -179,10 +146,10 @@ resource "aws_instance" "master" {
 resource "aws_instance" "node" {
   instance_type = "t2.micro"
 
-  tags {
-    Name = "k8s-node-${count.index}"
-    "kubernetes.io/cluster/terraform_example" = "owned"
-  }
+  tags = "${merge(map(
+      "Name", "${var.cluster_name}_node_sg-${count.index}",
+      "kubernetes.io/cluster/${var.cluster_name}", "owned"
+    ), var.extra_tags)}"
 
   count = 3
 
@@ -194,7 +161,7 @@ resource "aws_instance" "node" {
   key_name = "${aws_key_pair.auth.id}"
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+  vpc_security_group_ids = ["${aws_security_group.node.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for

@@ -24,7 +24,7 @@ REGION=$5
 
 HOSTNAME="$(hostname -f)"
 
-CLUSTERINFOBUCKET=com.datica.jcarley/k8s/latest
+CLUSTERINFOBUCKET=com.example.jcarley.deploy/k8s/latest
 
 KUBERNETESVERSION=v1.9.3
 

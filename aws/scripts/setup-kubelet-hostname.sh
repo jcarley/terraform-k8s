@@ -15,8 +15,8 @@ HN="$(hostname -f)"
 Environment="KUBELET_EXTRA_ARGS= --hostname-override=${HN} --cloud-provider=aws"
 EOF
 
+
 sudo mkdir -p /etc/systemd/system/kubelet.service.d
 sudo mv /tmp/10-hostname.conf /etc/systemd/system/kubelet.service.d/10-hostname.conf
 sudo systemctl daemon-reload
-
 
