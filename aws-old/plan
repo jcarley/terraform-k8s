@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+token=$(terraform output -json 2>/dev/null | jq -r .discovery_token.value)
+if [[ $token == '' ]]; then
+  token=$(perl -e 'printf "%06x.%08x%08x\n", rand(0xffffff), rand(0xffffffff), rand(0xffffffff);')
+  echo "Generated token: ${token}"
+else
+  echo "Reusing token: ${token}"
+fi
+
+terraform plan \
+  -out "./aws.tfplan" \
+  -var "key_name=terraform" \
+  -var "public_key_path=$HOME/.ssh/terraform.pub" \
+  -var "private_key_path=$HOME/.ssh/terraform" \
+  -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+  -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY" \
+  -var "discovery_token=${token}"
+
