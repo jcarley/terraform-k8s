@@ -33,3 +33,27 @@ variable "aws_region" {
 variable "aws_availability_zone" {
   default = "us-west-2b"
 }
+
+variable "bastion_instance_type" {
+  default = "t2.micro"
+}
+
+variable "key_pair_id" {
+}
+
+variable "private_key_path" {
+}
+
+
+# TODO: These should really be moved out at a later time.  Leaving
+#       in here until further along
+
+# Ubuntu Xenial 16.04 LTS (x64) hvm:ebs-ssd
+variable "aws_amis" {
+  default = {
+    eu-west-1 = "ami-1b791862"
+    us-east-1 = "ami-66506c1c"
+    us-west-1 = "ami-07585467"
+    us-west-2 = "ami-79873901"
+  }
+}

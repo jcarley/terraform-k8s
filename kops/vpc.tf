@@ -182,7 +182,6 @@ resource "aws_subnet" "us-west-2b-kubernetes-example-com" {
   }
 }
 
-
 resource "aws_vpc_dhcp_options" "kubernetes-example-com" {
   domain_name         = "us-west-2.compute.internal"
   domain_name_servers = ["AmazonProvidedDNS"]

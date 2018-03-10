@@ -15,7 +15,14 @@ terraform {
 }
 
 module "vpc" {
-  source       = "modules/vpc"
-  cluster_name = "${var.cluster_name}"
-  aws_region   = "${var.aws_region}"
+  source           = "modules/vpc"
+  cluster_name     = "${var.cluster_name}"
+  aws_region       = "${var.aws_region}"
+  key_pair_id      = "${aws_key_pair.auth.id}"
+  private_key_path = "${var.private_key_path}"
+}
+
+resource "aws_key_pair" "auth" {
+  key_name   = "${var.key_name}"
+  public_key = "${file(var.public_key_path)}"
 }
