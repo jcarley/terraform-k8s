@@ -121,8 +121,8 @@ resource "aws_route" "public_subnet_route" {
 }
 
 resource "aws_route_table_association" "public_subnet_route_table_assoc" {
-  route_table_id = "${aws_route_table.public_routes.id}"
   subnet_id      = "${aws_subnet.public_subnet.id}"
+  route_table_id = "${aws_route_table.public_routes.id}"
 }
 
 # resource "aws_network_interface" "bastion_ni" {
