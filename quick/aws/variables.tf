@@ -22,6 +22,23 @@ variable "count" {
   default = 1
 }
 
+variable "role_name" {
+  default = "ec2-iam-role"
+}
+
+variable "role_path" {
+  default = "/"
+}
+
+variable "policy_arn" {
+  description = "Attache the policies to the IAM Role."
+  type        = "list"
+  default = [
+    "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+  ]
+}
+
 variable "key_name" {
   description = "Desired name of AWS key pair"
 }
