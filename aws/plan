@@ -10,6 +10,7 @@ fi
 
 terraform plan \
   -out "./aws.tfplan" \
+  -detailed-exitcode \
   -var "key_name=terraform" \
   -var "public_key_path=$HOME/.ssh/terraform.pub" \
   -var "private_key_path=$HOME/.ssh/terraform" \
