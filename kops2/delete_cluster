@@ -1,0 +1,4 @@
+kops delete cluster \
+  --name=kubernetes.finishfirstsoftware.com \
+  --state=s3://com.finishfirstsoftware.deploy/k8s/state-store \
+  --yes
