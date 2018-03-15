@@ -12,6 +12,7 @@ resource "aws_ebs_volume" "git_volume" {
   availability_zone = "${var.aws_region}b"
   size = "${var.ebs_volume_size}"
   type = "${var.ebs_volume_type}"
+  encrypted = true
   tags {
     Name = "${var.name}"
   }

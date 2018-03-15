@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+terraform plan \
+  -out "./aws.tfplan" \
+  -detailed-exitcode \
+  -var "key_name=terraform" \
+  -var "public_key_path=$HOME/.ssh/terraform.pub" \
+  -var "aws_access_key=$AWS_ACCESS_KEY_ID" \
+  -var "aws_secret_key=$AWS_SECRET_ACCESS_KEY"
+
+exitcode=$?
+
+if [[ $exitcode == 2 ]]; then
+  ./apply
+fi
+

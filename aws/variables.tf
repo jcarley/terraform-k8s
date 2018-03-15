@@ -9,8 +9,10 @@ variable "aws_region" {
 
 # Stack name and kubernetes.io/cluster/<Cluster ID> must match
 variable "cluster_name" {
-  default = "terraform_example"
+  default = "terraform-example"
 }
+
+variable "base_domain" {}
 
 variable "extra_tags" {
   description = "Extra AWS tags to be applied to created resources."
