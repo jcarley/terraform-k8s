@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+CLUSTERNAME=jcarley-k8s
+
+TF_IN_AUTOMATION=true terraform apply ./aws.tfplan
+
+echo "------------------------------------------------------------------------"
+echo
+echo "Run the following commands to verify your k8s environment."
+echo "    export KUBECONFIG=$HOME/.secrets/clusters/${CLUSTERNAME}/auth/kubeconfig"
+echo "    kubectl get nodes"
+echo "    kubectl get pods --all-namespaces"
+echo
+

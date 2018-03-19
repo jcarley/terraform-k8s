@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+CLUSTERNAME=jcarley-k8s
+
+TF_IN_AUTOMATION=true terraform plan \
+  -out "./aws.tfplan" \
+  -detailed-exitcode \
+  -var "key_name=terraform" \
+  -var "home_dir=$HOME" \
+  -var "cluster_name=$CLUSTERNAME" \
+  -var "public_key_path=$HOME/.ssh/id_rsa.pub" \
+  -var "aws_access_key=$MY_AWS_ACCESS_KEY_ID" \
+  -var "aws_secret_key=$MY_AWS_SECRET_ACCESS_KEY" \
+  -var "base_domain=example-com" \
+  -var "discovery_token=${token}"
+
+echo "------------------------------------------------------------------------"
+echo
+echo "To perform this destroy plan, run the following command to apply"
+echo "    ./apply"
+echo

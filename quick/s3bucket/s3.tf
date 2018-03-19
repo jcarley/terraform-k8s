@@ -12,8 +12,9 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "artifacts" {
-  bucket = "com.finishfirstsoftware.k8s.customer.artifacts"
+  bucket = "com.datica.k8s.customer.artifacts"
   acl    = "private"
+  force_destroy = true
 
   versioning {
     enabled = true
@@ -55,8 +56,19 @@ resource "aws_s3_bucket" "artifacts" {
 }
 
 resource "aws_s3_bucket" "log_bucket" {
-  bucket = "com.finishfirstsoftware.k8s.customer.logs"
+  bucket = "com.datica.k8s.customer.logs"
   acl    = "log-delivery-write"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket" "destination" {
+  bucket   = "com.datica.k8s.customer.replication"
+  provider = "aws.west1"
+  force_destroy = true
+
+  versioning {
+    enabled = true
+  }
 }
 
 resource "aws_kms_key" "mykey" {
@@ -131,11 +143,3 @@ resource "aws_iam_policy_attachment" "replication" {
   policy_arn = "${aws_iam_policy.replication.arn}"
 }
 
-resource "aws_s3_bucket" "destination" {
-  bucket   = "com.finishfirstsoftware.k8s.customer.replication"
-  provider = "aws.west1"
-
-  versioning {
-    enabled = true
-  }
-}

@@ -1,0 +1,53 @@
+{
+  "Modules": [
+    {
+      "Path": [
+        "root"
+      ],
+      "Resources": {
+        "aws_s3_bucket.artifacts": {
+          "Attributes": {
+            "logging.#": {
+              "Old": "0",
+              "New": "1",
+              "NewComputed": false,
+              "NewRemoved": false,
+              "NewExtra": null,
+              "RequiresNew": false,
+              "Sensitive": false,
+              "Type": 0
+            },
+            "logging.4194138440.target_bucket": {
+              "Old": "",
+              "New": "com.datica.k8s.customer.logs",
+              "NewComputed": false,
+              "NewRemoved": false,
+              "NewExtra": null,
+              "RequiresNew": false,
+              "Sensitive": false,
+              "Type": 0
+            },
+            "logging.4194138440.target_prefix": {
+              "Old": "",
+              "New": "log/",
+              "NewComputed": false,
+              "NewRemoved": false,
+              "NewExtra": null,
+              "RequiresNew": false,
+              "Sensitive": false,
+              "Type": 0
+            }
+          },
+          "Destroy": false,
+          "DestroyDeposed": false,
+          "DestroyTainted": false,
+          "Meta": null
+        }
+      },
+      "Destroy": false
+    }
+  ]
+}
+
+
+
